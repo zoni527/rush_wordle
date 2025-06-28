@@ -1,16 +1,18 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    wordle_assistant.py                                :+:      :+:    :+:    #
+#    wordle_plays_itself_without_interruptions.py       :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: jvarila <jvarila@student.hive.fi>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/28 12:10:28 by jvarila           #+#    #+#              #
-#    Updated: 2025/06/28 18:17:41 by jvarila          ###   ########.fr        #
+#    Updated: 2025/06/28 22:26:06 by jvarila          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import readline
+import random
+import time
 
 guesses         = []
 invalid_chars   = set()
@@ -35,75 +37,47 @@ class C:
 
 def main():
 
-    f = open('./sgb-words.txt')
-    all_text = f.read()
-    words = all_text.split()
+    f           = open('./all_mined_words_alphabetical_order.txt')
+    all_text    = f.read()
+    words       = all_text.split()
     words.sort()
 
     guess_count = 0
+    solution    = random.choice(words)
 
+    print("The solution is", C.B_HI_W + solution + C.RST)
+    print()
     while guess_count < 6:
 
         valid_words = filtered_list(words, invalid_chars, yellow_chars, green_chars)
         if len(valid_words) == 0:
-            print("There are no more valid words, you'll have to be creative!")
+            print("There are no more valid words, "+ C.B_HI_R + "you are dead" + C.RST)
             print("Bye!")
-            exit(0)
+            exit(1)
         print("Currently there are {0} valid words".format(len(valid_words)))
-        user_input = str(input("Do you want to print them? (Y/n) > ")).lower()
-        if not user_input or user_input[0] == 'y':
-            print()
-            print_words(valid_words)
-        elif user_wants_to_exit(user_input):
-            exit(0)
-        else:
-            print()
-
-        guess = str(input("Enter a five letter word > ")).lower()
-        while True:
-            if user_wants_to_exit(guess):
-                exit(0)
-            if len(guess) != 5:
-                print("Error: length of entered word is {0}, needs to be 5".format(len(guess)))
-                guess = str(input("Enter a five letter word > ")).lower()
-                continue
-            elif contains_non_lowercase_char(guess):
-                print("Error: word contains invalid character")
-                guess = str(input("Enter a five letter word > ")).lower()
-                continue
-            elif guess not in words:
-                print("Error: word is not part of the word list")
-                guess = str(input("Enter a five letter word > ")).lower()
-                continue
-            break
-        guesses.append(guess)
         print()
 
-        user_input = str(input("Was the guess correct? (y/N) > ")).lower()
-        if user_input and user_input[0] == 'y':
+        guess = random.choice(valid_words)
+        while guess in guesses:
+            guess = random.choice(words)
+        guess_count += 1
+
+        if guess == solution:
+            print("The program guessed the word {0}, which is correct!".format(guess))
             print(C.B_HI_G + "\nCongratulations!" + C.RST)
             print("Bye!")
             exit(0)
-        elif user_wants_to_exit(user_input):
-            exit(0)
+        print("The program guessed the word {0}, which is incorrect".format(guess))
         print()
+        guesses.append(guess)
 
-        print("Mark green characters with g and yellow characters with y")
-        print("\n    " + guess)
-        user_input = str(input("    _____\r  > ")).lower()
-        if user_wants_to_exit(user_input):
-            exit(0)
-        if len(user_input) < 5:
-            user_input += "_____"
         for i in range(5):
-            if user_input[i] == 'y':
-                yellow_chars.add(guess[i])
-            elif user_input[i] == 'g':
+            if guess[i] == solution[i]:
                 green_chars[i] = guess[i]
-        for c in guess:
-            if c not in yellow_chars and c not in green_chars:
-                invalid_chars.add(c)
-        print()
+            elif guess[i] in solution:
+                yellow_chars.add(guess[i])
+            else:
+                invalid_chars.add(guess[i])
 
         print("Guesses:             ", C.B_HI_C + "{0}".format(guesses)         + C.RST)
         print("Yellow characters:   ", C.B_HI_Y + "{0}".format(yellow_chars)    + C.RST)
@@ -179,11 +153,5 @@ def contains_non_lowercase_char(word):
         return True
     else:
         return False
-
-def user_wants_to_exit(user_input):
-    match user_input:
-        case "exit" | "stop" | "quit" | "q":
-            return True
-    return False
 
 main()

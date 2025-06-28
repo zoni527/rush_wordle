@@ -51,3 +51,6 @@ If the word has uncommon letters it narrows down the list of words faster
 - Create function to filter out words that don't contain a letter/many letters
 - Create function to filter out words that don't contain a letter at the right spot
 - Mine more words
+
+## Ideas
+- Words that split the possible word domain roughly in half
