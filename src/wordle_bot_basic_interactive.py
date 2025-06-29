@@ -1,16 +1,18 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    wordle_assistant.py                                :+:      :+:    :+:    #
+#    wordle_bot_basic_interactive.py                    :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: jvarila <jvarila@student.hive.fi>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/28 12:10:28 by jvarila           #+#    #+#              #
-#    Updated: 2025/06/28 18:17:41 by jvarila          ###   ########.fr        #
+#    Updated: 2025/06/29 11:30:46 by jvarila          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import readline
+import random
+import time
 
 guesses         = []
 invalid_chars   = set()
@@ -29,26 +31,31 @@ class C:
     B_HI_C      = "\033[1;96m\001"
     B_HI_W      = "\033[1;97m\001"
     # Reset
-    RST       = "\033[0m\002"
+    RST         = "\033[0m\002"
 
 # ---------------------------------------------------------------------------- #
 
 def main():
 
-    f = open('./sgb-words.txt')
-    all_text = f.read()
-    words = all_text.split()
+    f           = open('word_lists/sgb-words.txt')
+    all_text    = f.read()
+    f.close()
+    words       = all_text.split()
     words.sort()
 
+    valid_words = words
     guess_count = 0
+    solution    = random.choice(words)
 
+    print("The solution is", C.B_HI_W + solution + C.RST)
+    print()
     while guess_count < 6:
 
-        valid_words = filtered_list(words, invalid_chars, yellow_chars, green_chars)
+        valid_words = filtered_list(valid_words, invalid_chars, yellow_chars, green_chars)
         if len(valid_words) == 0:
-            print("There are no more valid words, you'll have to be creative!")
+            print("There are no more valid words, "+ C.B_HI_R + "you are dead" + C.RST)
             print("Bye!")
-            exit(0)
+            exit(1)
         print("Currently there are {0} valid words".format(len(valid_words)))
         user_input = str(input("Do you want to print them? (Y/n) > ")).lower()
         if not user_input or user_input[0] == 'y':
@@ -59,51 +66,25 @@ def main():
         else:
             print()
 
-        guess = str(input("Enter a five letter word > ")).lower()
-        while True:
-            if user_wants_to_exit(guess):
-                exit(0)
-            if len(guess) != 5:
-                print("Error: length of entered word is {0}, needs to be 5".format(len(guess)))
-                guess = str(input("Enter a five letter word > ")).lower()
-                continue
-            elif contains_non_lowercase_char(guess):
-                print("Error: word contains invalid character")
-                guess = str(input("Enter a five letter word > ")).lower()
-                continue
-            elif guess not in words:
-                print("Error: word is not part of the word list")
-                guess = str(input("Enter a five letter word > ")).lower()
-                continue
-            break
-        guesses.append(guess)
-        print()
+        guess = random.choice(valid_words)
+        guess_count += 1
 
-        user_input = str(input("Was the guess correct? (y/N) > ")).lower()
-        if user_input and user_input[0] == 'y':
+        if guess == solution:
+            print("The program guessed the word {0}, which is correct!".format(guess))
             print(C.B_HI_G + "\nCongratulations!" + C.RST)
             print("Bye!")
             exit(0)
-        elif user_wants_to_exit(user_input):
-            exit(0)
+        print("The program guessed the word {0}, which is incorrect".format(guess))
         print()
+        guesses.append(guess)
 
-        print("Mark green characters with g and yellow characters with y")
-        print("\n    " + guess)
-        user_input = str(input("    _____\r  > ")).lower()
-        if user_wants_to_exit(user_input):
-            exit(0)
-        if len(user_input) < 5:
-            user_input += "_____"
         for i in range(5):
-            if user_input[i] == 'y':
-                yellow_chars.add(guess[i])
-            elif user_input[i] == 'g':
+            if guess[i] == solution[i]:
                 green_chars[i] = guess[i]
-        for c in guess:
-            if c not in yellow_chars and c not in green_chars:
-                invalid_chars.add(c)
-        print()
+            elif guess[i] in solution:
+                yellow_chars.add(guess[i])
+            else:
+                invalid_chars.add(guess[i])
 
         print("Guesses:             ", C.B_HI_C + "{0}".format(guesses)         + C.RST)
         print("Yellow characters:   ", C.B_HI_Y + "{0}".format(yellow_chars)    + C.RST)
@@ -111,7 +92,6 @@ def main():
         print("Green characters:    ", C.B_HI_G + "{0}".format(green_chars)     + C.RST)
         print()
 
-    f.close()
     print("Out of guesses, " + C.B_HI_R + "you are dead" + C.RST)
     print("Bye!")
     exit(1)

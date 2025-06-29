@@ -1,18 +1,17 @@
 # **************************************************************************** #
 #                                                                              #
 #                                                         :::      ::::::::    #
-#    wordle_plays_itself.py                             :+:      :+:    :+:    #
+#    wordle_bot_optimized_01.py                         :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
 #    By: jvarila <jvarila@student.hive.fi>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/06/28 12:10:28 by jvarila           #+#    #+#              #
-#    Updated: 2025/06/28 21:51:18 by jvarila          ###   ########.fr        #
+#    Updated: 2025/06/29 11:31:07 by jvarila          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 import readline
 import random
-import time
 
 guesses         = []
 invalid_chars   = set()
@@ -31,42 +30,56 @@ class C:
     B_HI_C      = "\033[1;96m\001"
     B_HI_W      = "\033[1;97m\001"
     # Reset
-    RST       = "\033[0m\002"
+    RST         = "\033[0m\002"
 
 # ---------------------------------------------------------------------------- #
 
 def main():
 
-    f           = open('./sgb-words.txt')
+    f           = open('word_lists/sgb-words.txt')
     all_text    = f.read()
+    f.close()
     words       = all_text.split()
     words.sort()
 
     guess_count = 0
     solution    = random.choice(words)
 
-    print("The solution is", C.B_HI_W + solution + C.RST)
-    print()
+    valid_words = words
+    valid_words_with_five_unique_characters = [w for w in words if len(set(w)) == 5]
+    valid_words_with_four_unique_characters = [w for w in words if len(set(w)) == 4]
+    valid_words_with_three_unique_characters = [w for w in words if len(set(w)) == 3]
+    valid_words_with_two_unique_characters = [w for w in words if len(set(w)) == 2]
+
     while guess_count < 6:
 
-        valid_words = filtered_list(words, invalid_chars, yellow_chars, green_chars)
+        valid_words = filtered_list(valid_words, invalid_chars, yellow_chars, green_chars)
         if len(valid_words) == 0:
-            print("There are no more valid words, "+ C.B_HI_R + "you are dead" + C.RST)
-            print("Bye!")
             exit(1)
-        print("Currently there are {0} valid words".format(len(valid_words)))
-        user_input = str(input("Do you want to print them? (Y/n) > ")).lower()
-        if not user_input or user_input[0] == 'y':
-            print()
-            print_words(valid_words)
-        elif user_wants_to_exit(user_input):
-            exit(0)
-        else:
-            print()
+        valid_words_with_five_unique_characters = filtered_list(
+            valid_words_with_five_unique_characters, invalid_chars, yellow_chars, green_chars
+        )
+        valid_words_with_four_unique_characters = filtered_list(
+            valid_words_with_four_unique_characters, invalid_chars, yellow_chars, green_chars
+        )
+        valid_words_with_three_unique_characters = filtered_list(
+            valid_words_with_three_unique_characters, invalid_chars, yellow_chars, green_chars
+        )
+        valid_words_with_two_unique_characters = filtered_list(
+            valid_words_with_two_unique_characters, invalid_chars, yellow_chars, green_chars
+        )
 
-        guess = random.choice(valid_words)
-        while guess in guesses:
-            guess = random.choice(words)
+        if guess_count < 3:
+            if len(valid_words_with_five_unique_characters):
+                guess = random.choice(valid_words_with_five_unique_characters)
+            elif len(valid_words_with_four_unique_characters):
+                guess = random.choice(valid_words_with_four_unique_characters)
+            elif len(valid_words_with_three_unique_characters):
+                guess = random.choice(valid_words_with_three_unique_characters)
+            else:
+                guess = random.choice(valid_words_with_two_unique_characters)
+        else:
+            guess = random.choice(valid_words)
         guess_count += 1
 
         if guess == solution:
@@ -74,8 +87,7 @@ def main():
             print(C.B_HI_G + "\nCongratulations!" + C.RST)
             print("Bye!")
             exit(0)
-        print("The program guessed the word {0}, which is incorrect".format(guess))
-        print()
+
         guesses.append(guess)
 
         for i in range(5):
@@ -86,13 +98,6 @@ def main():
             else:
                 invalid_chars.add(guess[i])
 
-        print("Guesses:             ", C.B_HI_C + "{0}".format(guesses)         + C.RST)
-        print("Yellow characters:   ", C.B_HI_Y + "{0}".format(yellow_chars)    + C.RST)
-        print("Invalid characters:  ", C.B_HI_R + "{0}".format(invalid_chars)   + C.RST)
-        print("Green characters:    ", C.B_HI_G + "{0}".format(green_chars)     + C.RST)
-        print()
-
-    f.close()
     print("Out of guesses, " + C.B_HI_R + "you are dead" + C.RST)
     print("Bye!")
     exit(1)
@@ -160,11 +165,5 @@ def contains_non_lowercase_char(word):
         return True
     else:
         return False
-
-def user_wants_to_exit(user_input):
-    match user_input:
-        case "exit" | "stop" | "quit" | "q":
-            return True
-    return False
 
 main()
