@@ -15,12 +15,12 @@ it would also be possible to feed the source directly to the python3
 executable.
 
 Example to run the game:
-```sh
+```bash
 git clone https://github.com/zoni527/rush_wordle.git && cd rush_wordle
 chmod +x wordle_game.sh
 ./wordle_game.sh
 ```
 or alternatively using the source code:
-```sh
+```bash
 python3 ./src/wordle_game.py
 ```
