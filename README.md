@@ -16,8 +16,8 @@ executable.
 
 Example to run the game:
 ```sh
-git clone https://github.com/zoni527/rush_wordle.git
-sudo chmod +x wordle_game.sh
+git clone https://github.com/zoni527/rush_wordle.git && cd rush_wordle
+chmod +x wordle_game.sh
 ./wordle_game.sh
 ```
 or alternatively using the source code:
